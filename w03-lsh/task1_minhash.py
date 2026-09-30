@@ -30,10 +30,7 @@ BOOK_HASHES = [lambda r: (r + 1) % 5, lambda r: (3 * r + 1) % 5]
 
 def jaccard(a, b):
     """|a and b| / |a or b|. Empty union is 0, not an error."""
-    u = a | b
-    if not u:
-        return 0
-    return len(a & b) / len(u)
+    raise NotImplementedError("jaccard similarity")
 
 
 def minhash_signatures(columns, hashes, n_rows):
@@ -51,19 +48,7 @@ def minhash_signatures(columns, hashes, n_rows):
     written something correct that does not survive a dataset that does not fit
     in memory, and not fitting in memory is what this course is about.
     """
-    n_cols = len(columns)
-    n_hashes = len(hashes)
-    sig = [[float('inf')] * n_cols for _ in range(n_hashes)]
-
-    for r in range(n_rows):
-        h_vals = [h(r) for h in hashes]
-        for c in range(n_cols):
-            if r in columns[c]:
-                for h_idx in range(n_hashes):
-                    if h_vals[h_idx] < sig[h_idx][c]:
-                        sig[h_idx][c] = h_vals[h_idx]
-
-    return [[sig[h][c] for h in range(n_hashes)] for c in range(n_cols)]
+    raise NotImplementedError("signature matrix")
 
 
 def lsh_candidates(signatures, bands):
@@ -75,31 +60,7 @@ def lsh_candidates(signatures, bands):
     The signature length must divide evenly by `bands`, or you have to decide
     what to do with the remainder. Say what you decided.
     """
-    if not signatures:
-        return set()
-
-    n_cols = len(signatures)
-    sig_len = len(signatures[0])
-    r = sig_len // bands
-    if r == 0:
-        r = 1
-        bands = min(bands, sig_len)
-
-    candidates = set()
-    for b in range(bands):
-        buckets = {}
-        start = b * r
-        end = start + r
-        for c in range(n_cols):
-            band_tuple = tuple(signatures[c][start:end])
-            if band_tuple in buckets:
-                for prev in buckets[band_tuple]:
-                    candidates.add((prev, c))
-                buckets[band_tuple].append(c)
-            else:
-                buckets[band_tuple] = [c]
-
-    return candidates
+    raise NotImplementedError("LSH candidate pairs")
 
 
 # ------------------------------------------------------------------- harness

@@ -34,9 +34,6 @@ class BruteForce:
         return out
 
 
-import random
-
-
 class YourFinder:
     """Your near-duplicate finder.
 
@@ -45,54 +42,26 @@ class YourFinder:
 
     `similarity(a, b)` is the only way to compare two documents, and every call
     is counted. Everything else - signatures, banding, bucketing - is free, in
-    the sense that the harness does not charge you for it.
+    the sense that the harness does not charge you for it. That is deliberate:
+    it is also roughly true at scale, where the comparison is the expensive
+    part and the hashing is linear.
+
+    Two knobs decide everything:
+
+        the number of hashes in a signature
+        how many bands you split it into
+
+    §3.4.2 gives you the relationship between those and the probability that a
+    pair at similarity s becomes a candidate. It is an S-curve, and where its
+    step sits is something you choose. Choose it on purpose and be able to say
+    why in observation.md - a threshold of 0.8 does not mean bands should be
+    anything in particular until you have done the arithmetic.
+
+    You may reuse your Task 1 code.
     """
 
     def __init__(self, threshold):
-        self.threshold = threshold
-        self.num_hashes = 128
-        self.bands = 32
-        self.rows_per_band = self.num_hashes // self.bands  # r = 4
-
-        # Fixed seed so hashes are deterministic
-        rng = random.Random(246)
-        p = 1_000_003
-        self.hashes = [
-            (rng.randint(1, p - 1), rng.randint(0, p - 1), p)
-            for _ in range(self.num_hashes)
-        ]
+        raise NotImplementedError("write your finder")
 
     def find(self, docs, similarity):
-        # 1. Compute minhash signatures for all documents
-        sigs = []
-        for doc in docs:
-            if not doc:
-                sigs.append([0] * self.num_hashes)
-                continue
-            doc_list = list(doc)
-            sig = [min((a * x + b) % p for x in doc_list) for a, b, p in self.hashes]
-            sigs.append(sig)
-
-        # 2. LSH candidate generation via banding
-        candidates = set()
-        r = self.rows_per_band
-        for b in range(self.bands):
-            buckets = {}
-            start = b * r
-            end = start + r
-            for doc_idx, sig in enumerate(sigs):
-                key = tuple(sig[start:end])
-                if key in buckets:
-                    for prev in buckets[key]:
-                        candidates.add((prev, doc_idx))
-                    buckets[key].append(doc_idx)
-                else:
-                    buckets[key] = [doc_idx]
-
-        # 3. Filter candidates using similarity()
-        out = set()
-        for i, j in candidates:
-            if similarity(docs[i], docs[j]) >= self.threshold:
-                out.add((i, j))
-
-        return out
+        raise NotImplementedError
